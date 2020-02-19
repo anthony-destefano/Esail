@@ -11,8 +11,8 @@ Date last edited: 11/24/2019
 
 Author: Josh Topliss
 Company: NASA/MSFC/EV44 Spring Intern
-E-mail: 
-Cell phone: 
+E-mail: joshua.topliss@gmail.com
+Cell phone: 256-560-5894
 Date last edited: 2/13/2020
 */
 #include <fstream>
@@ -340,14 +340,32 @@ void init_trackVars(trackVars& tv, double x0, double y0, double u0, double v0, d
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// ionP->temperature
+// if vtFile is defined, assume it is open
+void gen_thermalVel(double& vxT, double& vyT, ion* ionP, ofstream& vtFile = NULL)
+{
+	//Generate two random variables 
+	double U1 = ((double) rand() / (RAND_MAX));
+	double U2 = ((double) rand() / (RAND_MAX));
 
+	//Calc standard deviation based on particle temp and mass.
+	double sigma = sqrt((BOLTZMANN_CONSTANT*ionP->temperature)/ionP->mass);
 
-
-
-
-
-
-
+	//Convert to normal distro through Box-Muller Method and adjusted for standard deviation
+	double R = sigma * sqrt(-2*log(U1));
+	double Theta = 2*M_PI*U2;
+	vxT = R*cos(Theta);
+	vyT = R*sin(Theta);
+	
+	//Write to external files for testing 
+	if(vtFile.open())
+	{
+		vtFile << vxT << " " << vyT << '\n';
+	}
+	
+	
+}
+ 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -671,18 +689,20 @@ void forceOnTether(paramList& p)
 	double dy = 2.0 * lambdaD * boundaryLength / double(N-1.0);
 	double vxT, vyT;
 
+	ofstream vtFile("vtFile.txt");
+
 	for (int i = 0; i < N; ++i)
 	{
 		// generate thermal component of velocity in x and y directions
-		gen_thermalVel(vxT, vyT, p.ionP);
+		gen_thermalVel(vxT, vyT, p.ionP, vtFile);
 
 		// initialize track
 		trackVars track_i;
 		init_trackVars(track_i,
 		/* x0 */       -boundaryLength * lambdaD,
 		/* y0 */       -boundaryLength * lambdaD + i * dy,
-		/* u0 */       p.ionP->speed, // + vxT,
-		/* v0 */       0.0, //vyT,
+		/* u0 */       p.ionP->speed + vxT,
+		/* v0 */       vyT,
 		/* h  */       0.02 * lambdaD);
 
 
@@ -709,6 +729,8 @@ void forceOnTether(paramList& p)
 		}
 
 	}
+
+	vtFile.close();
 
 	if(PRINT_FORCE == 1) {
 		cout << N << ' ';
@@ -792,7 +814,7 @@ int main(int argc, char const *argv[])
 				init_ion(labArgonIons,
 			    /* density     */ 1.0e12, //130.0e-2/CHARGE_PROTON/eV_to_mps(50.0, 131.293*MASS_PROTON), //1.8e12,//1.00e12, // m^-3
 				/* speed       */ eV_to_mps(1.0, 131.293*MASS_PROTON),//eV_to_mps(ion_min * cur_potential * pow(ion_max/ion_min, i/double(N-1.0)), 131.293*MASS_PROTON), // eV -> m/s  105
-				/* temperature */ 0.0, // K
+				/* temperature */ eV_to_Kelvin(100.0),//0.0, // K
 				/* mass        */ 131.293*MASS_PROTON,//39.948*MASS_PROTON, // kg
 				/* charge      */ CHARGE_PROTON); // C
 
