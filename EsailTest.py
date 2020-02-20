@@ -1,21 +1,17 @@
 #Assembly
 import numpy as np
+import os
 
 #Var
-vxtdata = []
-vytdata = []
+K = 1.38064852e-23
+Mp = 1.6726219e-27
 
 #Data Inflow
-f = open("vt_test.txt", "r")
-line = f.readline()
-cnt = 1
-while line:
-    x,y = line.strip().split(" ")
-    vxtdata.append(x)
-    vytdata.append(y)
-    line = f.readline()
-    cnt += 1
+x,y = np.loadtxt("vtFile.txt",unpack = True)
 
 #Func
-sigmax = np.var(vxtdata)
-sigmay = np.var(vytdata)
+sigmax = np.var(x)
+sigmay = np.var(y)
+
+Tx = (Mp*sigmax/K)*131.293
+print(Tx)

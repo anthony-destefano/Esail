@@ -544,9 +544,10 @@ void forceFromParticleTrack(trackVars& t, paramList& p, double x0, double y0)
 	double vxT = 0.0, vyT = 0.0;
 	gen_thermalVel(vxT, vyT, p.ionP);
 
-	//ofstream vtFile("vtFile.txt", std::ios_base::app);
-	cout << vxT << ' ' << vyT << endl;
-	//vtFile.close();
+	ofstream vtFile("vtFile.txt", std::ios_base::app);
+	vtFile << vxT << ' ' << vyT << endl;
+	//cout << vxT << ' ' << vyT << endl;
+	vtFile.close();
 
 
 	init_trackVars(t,
@@ -796,6 +797,9 @@ int main(int argc, char const *argv[])
 	double edensity_max = 1.0e13;
 	double cur_edensity;
 
+	ofstream vtFile("vtFile.txt");
+	vtFile.close();
+
 	for (k = 0; k < P; ++k)
 	{
 		for (j = 0; j < M; ++j)
@@ -816,7 +820,7 @@ int main(int argc, char const *argv[])
 				init_ion(labArgonIons,
 			    /* density     */ 1.0e12, //130.0e-2/CHARGE_PROTON/eV_to_mps(50.0, 131.293*MASS_PROTON), //1.8e12,//1.00e12, // m^-3
 				/* speed       */ eV_to_mps(1000.0, 131.293*MASS_PROTON),//eV_to_mps(ion_min * cur_potential * pow(ion_max/ion_min, i/double(N-1.0)), 131.293*MASS_PROTON), // eV -> m/s  105
-				/* temperature */ eV_to_Kelvin(10.0),//0.0, // K
+				/* temperature */ 0.0001,//eV_to_Kelvin(10.0),//0.0, // K
 				/* mass        */ 131.293*MASS_PROTON,//39.948*MASS_PROTON, // kg
 				/* charge      */ CHARGE_PROTON); // C
 
