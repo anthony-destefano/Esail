@@ -510,8 +510,13 @@ void RK45UpdatePosVel(trackVars& t,
 		r.Rv = fabs(r.vi1[1] - r.vi1[0]) / t.h;
 
 		maxR = max(r.Rx, r.Ry);
+		//cout << "t.h = " << t.h << ' ';
 		t.h *= (maxR > 0.0 ? 0.84 * pow(p.codeOptionsP->epsilonErrorFractionRK45 / maxR, 0.25) : 1.2);
-		t.h = (t.h > ((2*p.gridCellsP->BoundaryScale)/double(p.gridCellsP->XDimension))/mag(r.ui1[i],r.vi1[i])*.1 ? ((2*p.gridCellsP->BoundaryScale)/double(p.gridCellsP->XDimension))/mag(r.ui1[i],r.vi1[i]) * .1: t.h);
+		if(t.h > ((2*p.gridCellsP->BoundaryScale)/double(p.gridCellsP->XDimension)) / mag(r.ui1[0],r.vi1[0]) )
+			t.h = ((0.5 * p.gridCellsP->BoundaryScale)/double(p.gridCellsP->XDimension)) / mag(r.ui1[0],r.vi1[0]);
+		//cout << t.h << ' ';
+		//t.h = (t.h > ((2*p.gridCellsP->BoundaryScale)/double(p.gridCellsP->XDimension))/mag(r.ui1[i],r.vi1[i]) ? ((2*p.gridCellsP->BoundaryScale)/double(p.gridCellsP->XDimension))/mag(r.ui1[i],r.vi1[i]) : t.h);
+		//cout << t.h << ' ' << ((2*p.gridCellsP->BoundaryScale)/double(p.gridCellsP->XDimension))/mag(r.ui1[i],r.vi1[i]) << endl;
 		
 		if(DEBUG > 1){
 			cout << "Rx = " << r.Rx << endl;
@@ -537,7 +542,8 @@ void RK45UpdatePosVel(trackVars& t,
 	
 	
 	if(fabs(t.xi)< p.gridCellsP->BoundaryScale && fabs(t.yi)< p.gridCellsP->BoundaryScale)
-		p.gridCellsP->cs[{GetCellIndex(t.xi,p.gridCellsP->XDimension,p.gridCellsP->BoundaryScale),GetCellIndex(t.yi,p.gridCellsP->YDimension,p.gridCellsP->BoundaryScale)}]+=t.h;
+		p.gridCellsP->cs[{GetCellIndex(t.xi, p.gridCellsP->XDimension, p.gridCellsP->BoundaryScale),
+			              GetCellIndex(t.yi, p.gridCellsP->YDimension, p.gridCellsP->BoundaryScale)}] += t.h;
 	
     if(DEBUG > 1) {
 		cout << "xi = " << t.xi << endl;
@@ -710,13 +716,13 @@ void rombergIntegrateParticles(paramList& p, double leftBound, double rightBound
 void forceOnTetherRomberg(paramList& p)
 {
 	double lambdaD = p.electronP->debyeLength;
-	double boundaryLength = p.tetherP->tetherSeparation * p.tetherP->numberOfTethers + 100.0 * lambdaD; //100; // Debye lengths
+	double boundaryLength = p.tetherP->tetherSeparation * p.tetherP->numberOfTethers + 100.0 * lambdaD; // m
 	// outputs
 	double FxFinal = 0.0, FyFinal = 0.0, Fxi, Fyi;
 	double dyDiv = 2.0 * boundaryLength / double(p.codeOptionsP->domainMacroDivisions);
 	int nTot = 0, ni, i;
 	
-	init_CellSystem(*(p.gridCellsP),20,20,boundaryLength);
+	init_CellSystem(*(p.gridCellsP),100, 100, boundaryLength);
 
 	for (i = 0; i < p.codeOptionsP->domainMacroDivisions; i++)
 	{
@@ -891,7 +897,7 @@ int main(int argc, char const *argv[])
 				init_ion(labArgonIons,
 			    /* density     */ 1.0e12, //130.0e-2/CHARGE_PROTON/eV_to_mps(50.0, 131.293*MASS_PROTON), //1.8e12,//1.00e12, // m^-3
 				/* speed       */ eV_to_mps(1000.0, 131.293*MASS_PROTON),//eV_to_mps(ion_min * cur_potential * pow(ion_max/ion_min, i/double(N-1.0)), 131.293*MASS_PROTON), // eV -> m/s  105
-				/* temperature */ 0.0001,//eV_to_Kelvin(10.0),//0.0, // K
+				/* temperature */ eV_to_Kelvin(0.001),//0.0, // K
 				/* mass        */ 131.293*MASS_PROTON,//39.948*MASS_PROTON, // kg
 				/* charge      */ CHARGE_PROTON); // C
 
@@ -911,10 +917,10 @@ int main(int argc, char const *argv[])
 				/* totalForceErrorFraction          */ 1.0e-5, // fraction
 				/* dpTrackBoundaryFraction          */ 1.0e-6, // fraction
 				/* epsilonErrorFractionRK45         */ 1.0e-4, // fraction
-				/* epsilonErrorFractionRomberg      */ 1.0e-2, // fraction
+				/* epsilonErrorFractionRomberg      */ 1.0e-1, // fraction 1.0e-2
 				/* domainMacroDivisions             */ 1,
-				/* minRombergDivisions              */ 8,
-				/* maxRombergDivisions              */ 20);
+				/* minRombergDivisions              */ 10,  // 8
+				/* maxRombergDivisions              */ 14); // 20
 
 				forceOnTetherRomberg(paramerters);
 				//forceOnTether(paramerters);
