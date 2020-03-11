@@ -1,0 +1,117 @@
+\documentclass{hitec}
+\usepackage{graphicx}
+\usepackage{lscape}
+\usepackage{longtable}
+\usepackage{subcaption} 
+\usepackage[space]{grffile}
+\usepackage{pdfpages}
+\usepackage{listings}
+\usepackage{amsmath}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\lstset{  breaklines=true, numbers=left, numberstyle=\tiny\color{mygray}, keepspaces=true }
+
+\usepackage{titlesec}
+\usepackage{hyperref}
+
+\usepackage{natbib}
+
+\usepackage{xcolor}
+\hypersetup{
+	colorlinks,
+	linkcolor={blue!50!black},
+	citecolor={blue!50!black},
+	urlcolor={blue!80!black}
+}
+
+\titleclass{\subsubsubsection}{straight}[\subsection]
+
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+\renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}} % optional; useful if paragraphs are to be numbered
+
+\titleformat{\subsubsubsection}
+{\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
+	{3.25ex \@plus1ex \@minus.2ex}%
+	{-1em}%
+	{\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
+	{3.25ex \@plus1ex \@minus .2ex}%
+	{-1em}%
+	{\normalfont\normalsize\bfseries}}
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@paragraph{5}
+\def\toclevel@paragraph{6}
+\def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+\def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
+\def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+\makeatother
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+
+
+\title{Modeling Thrust Capabilities of Electrostatic Sails}
+\author{Josh Topliss}
+\company{NASA, MSFC, EV44}
+\confidential{\textbf{-- For internal NASA and partners use only --}}
+\usepackage{hyperref} 
+\begin{document}
+\maketitle
+\pagenumbering{roman}
+
+\tableofcontents
+\listoffigures
+\listoftables
+\newpage
+
+
+
+%\section*{Contributing Author List}
+%\addcontentsline{toc}{section}{Contributing Author List}
+
+
+
+\cleardoublepage
+\pagenumbering{arabic}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Background}
+
+Electrostatic sails (E-Sail) are a proposed non-chemical reliant propulsion system, first conceptualized by Pekka Janhunen in 2004 \citep{janhunen2004electric}. The technology relies on solar wind for thrust, resulting in a low force high impulse system suitable for long duration missions.
+
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[scale=0.2]{Original-E-sail-concept.png}
+	\caption{Original E-Sail Concept (reference).}\label{fig:Original-E-sail-concept}
+\end{figure}
+
+An E-Sail system (Figure~\ref{fig:Original-E-sail-concept}) is composed of multiple millimeter wide tethers extending kilometers radially from a central chassis. Aboard this chassis is an electron gun, powered by solar panels, used to expel the negatively charged ions, keeping the tethers at (ball park on tether potential). These positively charged tethers deflect the positively charged ions within the oncoming solar wind. This deflection of the ion results in a transfer of momentum from the ion to the craft. 
+
+
+\section{Methods}
+\subsection{gen\_thermalVel()}
+\subsection{}
+
+\section{Results}
+
+
+
+\section{Conclusion}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section{References}
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{section}{References}
+\bibliographystyle{agu}
+\bibliography{report}
+
+\end{document}
