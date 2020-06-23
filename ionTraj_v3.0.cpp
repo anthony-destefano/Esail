@@ -9,11 +9,11 @@ E-mail: anthony.m.destefano@nasa.gov
 Office phone: 256-544-3094
 Date last edited: 11/24/2019
 
-Author: Josh Topliss
-Company: NASA/MSFC/EV44 Spring Intern
+Author: 
+Company: 
 E-mail: 
 Cell phone: 
-Date last edited: 2/13/2020
+Date last edited: 
 */
 #include <fstream>
 #include <iostream>
