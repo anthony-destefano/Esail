@@ -674,7 +674,7 @@ void forceOnTether(paramList& p)
 	for (int i = 0; i < N; ++i)
 	{
 		// generate thermal component of velocity in x and y directions
-		gen_thermalVel(vxT, vyT, p.ionP);
+		//gen_thermalVel(vxT, vyT, p.ionP);
 
 		// initialize track
 		trackVars track_i;
