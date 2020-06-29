@@ -9,11 +9,7 @@ E-mail: anthony.m.destefano@nasa.gov
 Office phone: 256-544-3094
 Date last edited: 11/24/2019
 
-Author: Josh Topliss
-Company: NASA/MSFC/EV44 Spring Intern
-E-mail: 
-Cell phone: 
-Date last edited: 2/13/2020
+
 */
 #include <fstream>
 #include <iostream>
@@ -29,8 +25,8 @@ using namespace std;
 #define DEBUG 0 // 0 = no output, 1 = per track, 2 = per time step
 #define VERBOSE_INIT 0 // 0 = no output, 1 = all but tracks, 2 = all
 #define HELP_INIT 0
-#define PRINT_TRACK 0 // 0 = no output, 1 = all track info, 2 = only at specified x-location
-#define PRINT_FORCE 1 // 0 = no output, 1 = integrated tracks, 2 = per track
+#define PRINT_TRACK 1 // 0 = no output, 1 = all track info, 2 = only at specified x-location
+#define PRINT_FORCE 0 // 0 = no output, 1 = integrated tracks, 2 = per track
 
 // SI units
 const double MASS_ELECTRON      = 9.10938356e-31;   // kg
@@ -169,14 +165,15 @@ void init_electron(electron& e, double d, double s, double t, double m, double c
 
 	if(VERBOSE_INIT){
 		cout << "Initializing electron paramerters:\n";
-		cout << "  density     = " << d << " 1/m^3\n";
-		cout << "  speed       = " << s << " m/s\n";
-		cout << "  temperature = " << t << " K\n";
-		cout << "              = " << Kelvin_to_eV(t) << " eV\n";
-		cout << "  mass        = " << m << " kg\n";
-		cout << "              = " << m/MASS_ELECTRON << " m_e\n";
-		cout << "  charge      = " << c << " C\n";
-		cout << "              = " << c/CHARGE_PROTON << " e\n\n";
+		cout << "  density      = " << d << " 1/m^3\n";
+		cout << "  speed        = " << s << " m/s\n";
+		cout << "  temperature  = " << t << " K\n";
+		cout << "               = " << Kelvin_to_eV(t) << " eV\n";
+		cout << "  mass         = " << m << " kg\n";
+		cout << "               = " << m/MASS_ELECTRON << " m_e\n";
+		cout << "  charge       = " << c << " C\n";
+		cout << "               = " << c/CHARGE_PROTON << " e\n";
+		cout << "  Debye length = " << e.debyeLength * 1000.0 << " mm\n\n";
 	}
 	if(HELP_INIT){
 		cout << "HELP: init_electron\n";
@@ -337,19 +334,6 @@ void init_trackVars(trackVars& tv, double x0, double y0, double u0, double v0, d
 		cout << "  h  = " << h << " s\n\n";
 	}
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // doesn't need to be initialized. Overridden during runtime
 struct RK45VarsPosVel
@@ -539,24 +523,24 @@ void forceFromParticleTrack(trackVars& t, paramList& p, double x0, double y0)
 }
 
 
-void rombergIntegrateParticles(paramList& p, double leftBound, double rightBound, double& FxFinal, double& FyFinal, int &n)
+void rombergIntegrateParticles(paramList& p, double leftBound, double rightBound, double xmin, double& FxFinal, double& FyFinal, int &n)
 {
 	double pow4m, hn, err = 10.0 * p.codeOptionsP->epsilonErrorFractionRomberg;
 	int m, k;
 	vector<double> Rx, Ry;
 	trackVars track_i;
 	double FxSum = 0.0, FySum = 0.0;
-	double boundaryLength = max(fabs(leftBound), fabs(rightBound)); // m
+	//double boundaryLength = max(fabs(leftBound), fabs(rightBound)); // m
 
 	n = 1;
 
 	// base case, R(0,0), trapezoid rule
 	hn = (rightBound - leftBound) / 2.0;
 
-	forceFromParticleTrack(track_i, p, -boundaryLength, leftBound);
+	forceFromParticleTrack(track_i, p, xmin, leftBound);
 	Rx.push_back(hn * track_i.Fx);
 	Ry.push_back(hn * track_i.Fy);
-	forceFromParticleTrack(track_i, p, -boundaryLength, rightBound);
+	forceFromParticleTrack(track_i, p, xmin, rightBound);
 	Rx[0] += hn * track_i.Fx;
 	Ry[0] += hn * track_i.Fy;
 
@@ -576,7 +560,7 @@ void rombergIntegrateParticles(paramList& p, double leftBound, double rightBound
 		for (k = 1; k <= (1 << (n-1)); k++)
 		{
 			forceFromParticleTrack(track_i, p,
-				                    -boundaryLength,
+				                    xmin,
 				                    leftBound + (2.0*k - 1.0)*hn);
 			FxSum += track_i.Fx;
 			FySum += track_i.Fy;
@@ -629,9 +613,9 @@ void forceOnTetherRomberg(paramList& p)
 
 	for (i = 0; i < p.codeOptionsP->domainMacroDivisions; i++)
 	{
-
+		//cout << (-boundaryLength + dyDiv*i)/lambdaD << ' ' << (-boundaryLength + dyDiv*(i+1.0))/lambdaD << endl;
 		rombergIntegrateParticles(p, -boundaryLength + dyDiv*i,
-			                          -boundaryLength + dyDiv*(i+1.0), Fxi, Fyi, ni);
+			                          -boundaryLength + dyDiv*(i+1.0), -boundaryLength, Fxi, Fyi, ni);
 
 		// cout << i << ' ' << (-boundaryLength + dyDiv*i) / p.electronP->debyeLength << ' ';
 		// cout << (-boundaryLength + dyDiv*(i+1.0)) / p.electronP->debyeLength << ' ';
@@ -791,7 +775,7 @@ int main(int argc, char const *argv[])
 
 				init_ion(labXenonIons,
 			    /* density     */ cur_edensity, //130.0e-2/CHARGE_PROTON/eV_to_mps(50.0, 131.293*MASS_PROTON), //1.8e12,//1.00e12, // m^-3
-				/* speed       */ eV_to_mps(100.0, 131.293*MASS_PROTON),//eV_to_mps(ion_min * cur_potential * pow(ion_max/ion_min, i/double(N-1.0)), 131.293*MASS_PROTON), // eV -> m/s  105
+				/* speed       */ eV_to_mps(300.0, 131.293*MASS_PROTON),//eV_to_mps(ion_min * cur_potential * pow(ion_max/ion_min, i/double(N-1.0)), 131.293*MASS_PROTON), // eV -> m/s  105
 				/* temperature */ 0.0, // K
 				/* mass        */ 131.293*MASS_PROTON,//39.948*MASS_PROTON, // kg
 				/* charge      */ CHARGE_PROTON); // C
@@ -803,7 +787,7 @@ int main(int argc, char const *argv[])
 				/* tetherSeparation */ 6.E-3,//3.0 * labElectrons.debyeLength,//(sep_min * pow(sep_max/sep_min, j/double(M-1.0))) * labElectrons.debyeLength,//1e-1, // m
 				/* EfieldFunction   */ Efield_MultiWiresPlasma); //Efield_WirePlasma
 
-				cout << " Debye length = " << labElectrons.debyeLength << endl;
+				//cout << " Debye length = " << labElectrons.debyeLength << endl;
 					
 				init_codeOptions(options,
 				/* speedFractionEnergyEquivDistance */ 1.0e-6, // fraction
@@ -813,8 +797,8 @@ int main(int argc, char const *argv[])
 				/* dpTrackBoundaryFraction          */ 1.0e-6, // fraction
 				/* epsilonErrorFractionRK45         */ 1.0e-4, // fraction
 				/* epsilonErrorFractionRomberg      */ 1.0e-2, // fraction
-				/* domainMacroDivisions             */ 5,
-				/* minRombergDivisions              */ 8,
+				/* domainMacroDivisions             */ 5, // 5
+				/* minRombergDivisions              */ 10, // 8
 				/* maxRombergDivisions              */ 20);
 
 				forceOnTetherRomberg(paramerters);
