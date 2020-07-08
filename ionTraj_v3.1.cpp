@@ -25,8 +25,8 @@ using namespace std;
 #define DEBUG 0 // 0 = no output, 1 = per track, 2 = per time step
 #define VERBOSE_INIT 0 // 0 = no output, 1 = all but tracks, 2 = all
 #define HELP_INIT 0
-#define PRINT_TRACK 1 // 0 = no output, 1 = all track info, 2 = only at specified x-location
-#define PRINT_FORCE 0 // 0 = no output, 1 = integrated tracks, 2 = per track
+#define PRINT_TRACK 0 // 0 = no output, 1 = all track info, 2 = only at specified x-location
+#define PRINT_FORCE 1 // 0 = no output, 1 = integrated tracks, 2 = per track
 
 // SI units
 const double MASS_ELECTRON      = 9.10938356e-31;   // kg
@@ -745,8 +745,8 @@ int main(int argc, char const *argv[])
 	double sep_min = 0.15; // debye lengths
 	double sep_max = 20.0; // debye lengths
 
-	double ion_min = 0.1;//0.01;   // x potential
-	double ion_max = 100.0;//10.0; // x potential
+	double ion_min = 0.1;//0.01;   // eV
+	double ion_max = 100.0;//10.0; // eV
 
 	double potential_min = 1.0;    // V
 	double potential_max = 1000.0; // V
@@ -761,10 +761,10 @@ int main(int argc, char const *argv[])
 	// 	for (j = 0; j < M; ++j)
 	// 	{
 
-	// 		for (i = 0; i < N; ++i)
-	// 		{
+			for (i = 0; i < N; ++i)
+			{
 				cur_edensity  = 1.E12; //edensity_min * pow(edensity_max/edensity_min, j/double(M-1.0));
-				//cur_potential = potential_min * pow(potential_max/potential_min, j/double(M-1.0));
+				//cur_potential = potential_min * pow(potential_max/potential_min, i/double(N-1.0));
 
 				init_electron(labElectrons,
 				/* density     */ cur_edensity,//130.0e-2/CHARGE_PROTON/eV_to_mps(50.0, 131.293*MASS_PROTON),//1.00e12, // m^-3
@@ -775,17 +775,17 @@ int main(int argc, char const *argv[])
 
 				init_ion(labXenonIons,
 			    /* density     */ cur_edensity, //130.0e-2/CHARGE_PROTON/eV_to_mps(50.0, 131.293*MASS_PROTON), //1.8e12,//1.00e12, // m^-3
-				/* speed       */ eV_to_mps(300.0, 131.293*MASS_PROTON),//eV_to_mps(ion_min * cur_potential * pow(ion_max/ion_min, i/double(N-1.0)), 131.293*MASS_PROTON), // eV -> m/s  105
+				/* speed       */ eV_to_mps(ion_min * pow(ion_max/ion_min, i/double(N-1.0)), 131.293*MASS_PROTON),//eV_to_mps(ion_min * cur_potential * pow(ion_max/ion_min, i/double(N-1.0)), 131.293*MASS_PROTON), // eV -> m/s  105
 				/* temperature */ 0.0, // K
 				/* mass        */ 131.293*MASS_PROTON,//39.948*MASS_PROTON, // kg
 				/* charge      */ CHARGE_PROTON); // C
 
 				init_tether(eSailTether,
-				/* potential        */ 200.0,//100.0, // V 
+				/* potential        */ 1000.,//100.0, // V 
 				/* radius           */ 1.0e-3, //7.874e-4 / 2.0, //1.0e-3, // m
-				/* numberOfTethers  */ 31,
+				/* numberOfTethers  */ 50,
 				/* tetherSeparation */ 6.E-3,//3.0 * labElectrons.debyeLength,//(sep_min * pow(sep_max/sep_min, j/double(M-1.0))) * labElectrons.debyeLength,//1e-1, // m
-				/* EfieldFunction   */ Efield_MultiWiresPlasma); //Efield_WirePlasma
+				/* EfieldFunction   */ Efield_MultiWiresPlasma); //Efield_WirePlasma, Efield_MultiWiresPlasma
 
 				//cout << " Debye length = " << labElectrons.debyeLength << endl;
 					
@@ -804,11 +804,11 @@ int main(int argc, char const *argv[])
 				forceOnTetherRomberg(paramerters);
 				//forceOnTether(paramerters);
 				
-				
-		 	//}
-		 	// if(PRINT_FORCE){
-				// 	cout << endl << endl;
-				// }
+				// if(PRINT_FORCE){
+				// 		cout << endl << endl;
+				// 	}	
+		 	}
+		 	
 		//}
 		// if(PRINT_FORCE){
 		// 			cout << endl << endl;
