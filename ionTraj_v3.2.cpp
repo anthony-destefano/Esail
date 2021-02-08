@@ -807,7 +807,7 @@ int main(int argc, char const *argv[])
 	paramerters.codeOptionsP = &options;
 
 
-	int N = 50, M = 60, P = 1, i, j, k;
+	int N = atoi(argv[3]), M = 60, P = 1, i, j, k;
 	
 	double Te_min = 0.01;//0.1;  // eV
 	double Te_max = 10000.0;//100.0; // eV
@@ -818,8 +818,8 @@ int main(int argc, char const *argv[])
 	double sep_min = 0.15; // debye lengths
 	double sep_max = 20.0; // debye lengths
 
-	double ion_min = 0.1;//0.01;   // eV
-	double ion_max = 10000.0;//10.0; // eV
+	double ion_min = atof(argv[1]);//0.01;   // eV
+	double ion_max = atof(argv[2]);//10.0; // eV
 
 	double potential_min = 1.0;    // V
 	double potential_max = 1000.0; // V
@@ -829,33 +829,35 @@ int main(int argc, char const *argv[])
 	double edensity_max = 1.0e13;
 	double cur_edensity;
 
+	double elementMass = atof(argv[4]); // units of proton mass
+
 	// for (k = 0; k < P; ++k)
 	// {
-		for (j = 0; j < M; ++j)
-		{
+		// for (j = 0; j < M; ++j)
+		// {
 
 			for (i = 0; i < N; ++i)
 			{
-				cur_edensity  = 1.E12; //edensity_min * pow(edensity_max/edensity_min, j/double(M-1.0));
+				cur_edensity  = 1.2E12; //edensity_min * pow(edensity_max/edensity_min, j/double(M-1.0));
 				//cur_potential = potential_min * pow(potential_max/potential_min, i/double(N-1.0));
 
 				init_electron(labElectrons,
 				/* density     */ cur_edensity,//130.0e-2/CHARGE_PROTON/eV_to_mps(50.0, 131.293*MASS_PROTON),//1.00e12, // m^-3
 				/* speed       */ 0.0, // m/s
-				/* temperature */ eV_to_Kelvin(Te_min * pow(Te_max/Te_min, j/double(M-1.)) ),//eV_to_Kelvin(0.5),//eV_to_Kelvin(Te_min * density_to_eVpm2(cur_edensity) * pow(Te_max/Te_min, i/double(N-1.0))), // eV -> K
+				/* temperature */ eV_to_Kelvin(0.75),//eV_to_Kelvin(Te_min * pow(Te_max/Te_min, j/double(M-1.)) ),//eV_to_Kelvin(0.5),//eV_to_Kelvin(Te_min * density_to_eVpm2(cur_edensity) * pow(Te_max/Te_min, i/double(N-1.0))), // eV -> K
 				/* mass        */ MASS_ELECTRON, // kg
 				/* charge      */ -CHARGE_PROTON); // C
 
 				init_ion(labXenonIons,
 			    /* density     */ cur_edensity, //130.0e-2/CHARGE_PROTON/eV_to_mps(50.0, 131.293*MASS_PROTON), //1.8e12,//1.00e12, // m^-3
-				/* speed       */ eV_to_mps(ion_min * pow(ion_max/ion_min, i/double(N-1.0)), 131.293*MASS_PROTON),//eV_to_mps(ion_min * cur_potential * pow(ion_max/ion_min, i/double(N-1.0)), 131.293*MASS_PROTON), // eV -> m/s  105
+				/* speed       */ eV_to_mps(ion_min + (ion_max - ion_min) * i / double(N-1.), MASS_PROTON*elementMass),//eV_to_mps(ion_min * cur_potential * pow(ion_max/ion_min, i/double(N-1.0)), 131.293*MASS_PROTON), // eV -> m/s  105
 				/* temperature */ 0.0, //eV_to_Kelvin(Tp_min * pow(Tp_max/Tp_min, i/double(N-1.)) ),//0.0, // K
-				/* mass        */ 131.293*MASS_PROTON,//39.948*MASS_PROTON, // kg
+				/* mass        */ MASS_PROTON*elementMass, //131.293*MASS_PROTON,//39.948*MASS_PROTON, // kg
 				/* charge      */ CHARGE_PROTON); // C
 
 				init_tether(eSailTether,
-				/* potential        */ 1000.,//100.0, // V 
-				/* radius           */ 1.0e-3, //7.874e-4 / 2.0, //1.0e-3, // m
+				/* potential        */ 100.,//100.0, // V 
+				/* radius           */ 0.01,// for Sergey //1.0e-3, //7.874e-4 / 2.0, //1.0e-3, // m
 				/* numberOfTethers  */ 1,//50,
 				/* tetherSeparation */ 6.E-3,//3.0 * labElectrons.debyeLength,//(sep_min * pow(sep_max/sep_min, j/double(M-1.0))) * labElectrons.debyeLength,//1e-1, // m
 				/* EfieldFunction   */ Efield_WirePlasma); //Efield_WirePlasma, Efield_MultiWiresPlasma
@@ -873,7 +875,7 @@ int main(int argc, char const *argv[])
 				/* domainMacroDivisions             */ 5, // 5
 				/* minRombergDivisions              */ 8, // 8
 				/* maxRombergDivisions              */ 17,  //20
-				/* numberSampleThermalDistribution  */ 1);
+				/* numberSampleThermalDistribution  */ 1); // 1 for cold beam
 
 				forceOnTetherRomberg(paramerters);
 				//forceOnTether(paramerters);
@@ -881,9 +883,9 @@ int main(int argc, char const *argv[])
 				// if(PRINT_FORCE){
 				// 		cout << endl << endl;
 				// 	}	
-		 	}
+		  	}
 		 	
-		}
+		// }
 		// if(PRINT_FORCE){
 		// 			cout << endl << endl;
 		// 		}
